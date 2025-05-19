@@ -27,6 +27,18 @@
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5b4d424e-486c-4a0c-b9b5-655960af1764"
+      }
+    },
+    "owner": "saiffers44",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/5b4d424e-486c-4a0c-b9b5-655960af1764"
+    }
   }
 }
