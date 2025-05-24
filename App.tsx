@@ -1,4 +1,4 @@
-// THE THIRD SET - FULL APP CODE WITH MINI PROFILE IN DRAWER (Rijepard)
+// THE THIRD SET - REFACTORED FULL APP WITH PERFECT DRAWER + TAB LOGIC
 
 import 'react-native-gesture-handler';
 import React, { useCallback, useEffect } from 'react';
@@ -11,41 +11,35 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts, PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular } from '@expo-google-fonts/inter';
-import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
-
 
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 /* ---------- Screens ---------- */
 function HomeScreen({ navigation }) {
   const [fontsLoaded] = useFonts({ PlayfairDisplay_700Bold, Inter_400Regular });
-
   useEffect(() => { SplashScreen.preventAutoHideAsync(); }, []);
-  const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) await SplashScreen.hideAsync();
-  }, [fontsLoaded]);
+  const onLayoutRootView = useCallback(async () => { if (fontsLoaded) await SplashScreen.hideAsync(); }, [fontsLoaded]);
   if (!fontsLoaded) return null;
-
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.container} onLayout={onLayoutRootView}>
       <TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.profileIcon}>
         <MaterialCommunityIcons name="account-circle-outline" size={26} color="#F9B233" />
       </TouchableOpacity>
       <Image source={require('./assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
-
       <View style={styles.featured}><Text style={styles.featuredLabel}>Featured</Text><Text style={styles.featuredHeadline}>Who Will Rule the Summer Swing?</Text></View>
       <View style={styles.section}><Text style={styles.sectionTitle}>Live Scores</Text><Text style={styles.placeholder}>Match data coming soon...</Text></View>
       <View style={styles.section}><Text style={styles.sectionTitle}>Sharp Takes</Text><Text style={styles.placeholder}>Sinner’s serve is still a problem — even on clay.</Text></View>
       <View style={styles.section}><Text style={styles.sectionTitle}>Winners & Whiffs</Text><Text style={styles.placeholder}>3 underdogs you don’t want to overlook this week.</Text></View>
       <View style={styles.section}><Text style={styles.sectionTitle}>The Practice Court</Text><Text style={styles.placeholder}>Test your tennis IQ. Weekly quizzes and prediction games.</Text></View>
-
       <View style={styles.proUpsell}><Text style={styles.proTitle}>Unlock PRO Access</Text><Text style={styles.proText}>More picks. More edge. More third-set wins.</Text></View>
       <Text style={styles.footer}>v0.1 • Built with sweat, stats, and spin.</Text>
     </ScrollView>
@@ -73,30 +67,8 @@ const SettingsScreen = ScreenWithTitle('Settings', 'Customize your experience.')
 const PreferencesScreen = ScreenWithTitle('Preferences', 'Tune your tennis universe.');
 const ManageMembershipScreen = ScreenWithTitle('Manage Membership', 'Upgrade. Downgrade. Own your journey.');
 
-/* ---------- Drawer Content ---------- */
-function CustomDrawerContent(props) {
-  return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerFull}>
-      <View style={styles.drawerProfile}>
-  <Image source={require('./assets/rije.jpeg')} style={styles.avatar} />
-  <Text style={styles.rijeName}>Rije Baby <Text style={styles.crown}>💋</Text></Text>
-  <Text style={styles.rijeTier}>Champion</Text>
-  <Text style={styles.rijeQuote}>Queen of the Third Set</Text>
-  <Text style={styles.rijeInfo}>Favorite Player: Jack Draper</Text>
-  <Text style={styles.rijeInfo}>Country: South Korea 🇰🇷</Text>
-  <Text style={styles.rijeInfo}> T3Ser Since: May 2025</Text>
-</View>
-
-
-      <View style={styles.divider} />
-
-      <DrawerItemList {...props} />
-    </DrawerContentScrollView>
-  );
-}
-
 /* ---------- Tabs ---------- */
-function TabsWithProfile() {
+function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -129,27 +101,56 @@ function TabsWithProfile() {
   );
 }
 
+/* ---------- Drawer-Only Screen Wrapper ---------- */
+function BottomWrappedScreen(Component) {
+  return () => (
+    <View style={{ flex: 1 }}>
+      <Component navigation={{ openDrawer: () => {} }} />
+      <MainTabs />
+    </View>
+  );
+}
+
+/* ---------- Drawer Content ---------- */
+function CustomDrawerContent(props) {
+  return (
+    <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerFull}>
+      <View style={styles.drawerProfile}>
+        <Image source={require('./assets/rije.jpeg')} style={styles.avatar} />
+        <Text style={styles.rijeName}>Rije Baby <Text style={styles.crown}>💋</Text></Text>
+        <Text style={styles.rijeTier}>Champion</Text>
+        <Text style={styles.rijeQuote}>Queen of the Third Set</Text>
+        <Text style={styles.rijeInfo}>Favorite Player: Jack Draper</Text>
+        <Text style={styles.rijeInfo}>Country: South Korea 🇰🇷</Text>
+        <Text style={styles.rijeInfo}>T3Ser Since: May 2025</Text>
+      </View>
+      <View style={styles.divider} />
+      <DrawerItemList {...props} />
+    </DrawerContentScrollView>
+  );
+}
+
 /* ---------- App ---------- */
 export default function App() {
   return (
     <NavigationContainer>
       <Drawer.Navigator
-  drawerContent={(props) => <CustomDrawerContent {...props} />}
-  screenOptions={{
-    headerShown: false,
-    drawerStyle: { backgroundColor: '#2A1A40' },
-    drawerInactiveTintColor: '#D9D3C6',
-    drawerActiveTintColor: '#FDF6ED',
-    drawerActiveBackgroundColor: '#4CAF50',
-    drawerLabelStyle: { fontFamily: 'Inter_400Regular', fontSize: 14 },
-  }}
->
-  <Drawer.Screen name="Home" component={TabsWithProfile} />
-  <Drawer.Screen name="Manage Membership" component={ManageMembershipScreen} />
-  <Drawer.Screen name="Bookmarks" component={BookmarksScreen} />
-  <Drawer.Screen name="Preferences" component={PreferencesScreen} />
-  <Drawer.Screen name="Settings" component={SettingsScreen} />
-</Drawer.Navigator>
+        drawerContent={(props) => <CustomDrawerContent {...props} />}
+        screenOptions={{
+          headerShown: false,
+          drawerStyle: { backgroundColor: '#2A1A40' },
+          drawerInactiveTintColor: '#D9D3C6',
+          drawerActiveTintColor: '#FDF6ED',
+          drawerActiveBackgroundColor: '#4CAF50',
+          drawerLabelStyle: { fontFamily: 'Inter_400Regular', fontSize: 14 },
+        }}
+      >
+        <Drawer.Screen name="Home" component={MainTabs} />
+        <Drawer.Screen name="Manage Membership" component={BottomWrappedScreen(ManageMembershipScreen)} />
+        <Drawer.Screen name="Bookmarks" component={BottomWrappedScreen(BookmarksScreen)} />
+        <Drawer.Screen name="Preferences" component={BottomWrappedScreen(PreferencesScreen)} />
+        <Drawer.Screen name="Settings" component={BottomWrappedScreen(SettingsScreen)} />
+      </Drawer.Navigator>
     </NavigationContainer>
   );
 }
@@ -181,13 +182,5 @@ const styles = StyleSheet.create({
   rijeTier: { fontSize: 16, color: '#F9B233', fontFamily: 'Inter_400Regular' },
   rijeInfo: { fontSize: 14, color: '#D9D3C6', fontFamily: 'Inter_400Regular' },
   divider: { height: 1, backgroundColor: '#D9D3C6', marginVertical: 20, width: '80%', alignSelf: 'center' },
-  drawerLinks: { flex: 1 },
-  rijeQuote: {
-  fontSize: 14,
-  color: '#FDF6ED',
-  fontFamily: 'PlayfairDisplay_700Bold',
-  marginTop: 4,
-  marginBottom: 4,
-},
-
+  rijeQuote: { fontSize: 14, color: '#FDF6ED', fontFamily: 'PlayfairDisplay_700Bold', marginTop: 4, marginBottom: 4 },
 });
